@@ -218,6 +218,44 @@ Adjust these to match your comfort level and CI/CD setup.
    ```
 4. Review `progress.txt` for a running log of changes and next steps.
 
+## Demo
+
+Run Ralph in an isolated sandbox using a `git worktree` so you can delete everything afterwards.
+
+1. From the repo root, create a worktree on a new branch:
+  ```bash
+  git worktree add ../ralph-demo -b ralph-demo
+  cd ../ralph-demo
+  ```
+
+2. (Optional) Confirm Copilot CLI is available:
+  ```bash
+  copilot --version
+  ```
+
+3. Run one iteration to validate everything works end-to-end:
+  ```bash
+  ./ralph-once.sh
+  ```
+
+4. Run multiple iterations (adjust the number as needed):
+  ```bash
+  ./ralph.sh 10
+  ```
+
+5. Inspect what happened:
+  ```bash
+  git --no-pager log --oneline --decorate -n 20
+  cat progress.txt
+  ```
+
+6. Clean up (removes the worktree folder and deletes the demo branch):
+  ```bash
+  cd -
+  git worktree remove ../ralph-demo
+  git branch -D ralph-demo
+  ```
+
 
 ## License
 
