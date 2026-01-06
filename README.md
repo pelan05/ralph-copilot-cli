@@ -112,13 +112,11 @@ winget upgrade GitHub.Copilot
 
 ## List available models
 
-Your Copilot CLI already exposes the model list via `--help`:
+ Force an error to print allowed models (quick check)
 
 ```bash
-copilot --help
+copilot --model not-a-real-model -p "hi"
 ```
-
-Look for the `--model <model>` line.
 
 You can also list/select models in interactive mode:
 
