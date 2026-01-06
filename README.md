@@ -1,13 +1,29 @@
 # Ralph (Copilot CLI runner)
 
-This repo uses **GitHub Copilot CLI (standalone)** to iteratively implement items from a lightweight `plans/prd.json` and record work in `progress.txt`.
+## About Ralph
+
+Ralph is a small runner around **GitHub Copilot CLI (standalone)** inspired by the“Ralph Wiggum” technique: run a coding agent from a clean slate, over and over, until a stop condition is met.
+
+The core idea:
+
+- Run the agent in a finite bash loop (e.g. 10 iterations)
+- Each iteration: implement exactly one scoped feature, then **commit**
+- Append a short progress report to `progress.txt` after each run
+- Keep CI green by running checks/tests every iteration
+- Use a PRD-style checklist (here: `plans/prd.json` with `passes: false/true`) so the agent knows what to do next and when it’s done
+- Stop early when the agent outputs `<promise>COMPLETE</promise>`
+
+References:
+
+- Thread: https://x.com/mattpocockuk/status/2007924876548637089
+- Video: https://www.youtube.com/watch?v=_IK18goX4X8 ("Ship working code while you sleep with the Ralph Wiggum technique")
 
 You’ll find two helper scripts:
 
 - **`ralph.sh`** — runs Copilot in a loop for _N_ iterations (stops early if Copilot prints `<promise>COMPLETE</promise>`).
 - **`ralph-once.sh`** — runs Copilot exactly once (useful for quick testing / dry-runs).
 
----
+
 
 ## Repo layout
 
@@ -20,7 +36,7 @@ You’ll find two helper scripts:
 └── ralph-once.sh
 ```
 
----
+
 
 ## `plans/prd.json` format
 
@@ -57,7 +73,7 @@ Copilot is instructed to:
 - append notes to `progress.txt`,
 - commit changes.
 
----
+
 
 ## Install / update Copilot CLI (standalone)
 
@@ -88,7 +104,7 @@ winget upgrade GitHub.Copilot
 
 > Tip: If you’re not sure how you installed it, run `which copilot` (macOS/Linux) or `where copilot` (Windows) to see where it’s coming from.
 
----
+
 
 ## List available models
 
@@ -112,7 +128,7 @@ Then inside the Copilot prompt:
 /model
 ```
 
----
+
 
 ## Set the model (and default)
 
@@ -135,7 +151,7 @@ Run with a specific model like this:
 MODEL=claude-sonnet-4.5 ./ralph-once.sh
 ```
 
----
+
 
 ## `ralph.sh` (looped runner)
 
@@ -157,7 +173,7 @@ The prompt includes:
 
 …plus instructions to implement **one** feature, run checks, update files, and commit.
 
----
+
 
 ## `ralph-once.sh` (single run)
 
@@ -169,7 +185,7 @@ The prompt includes:
 ./ralph-once.sh
 ```
 
----
+
 
 ## Notes on permissions / safety
 
@@ -185,7 +201,7 @@ The scripts in this bundle:
 
 Adjust these to match your comfort level and CI/CD setup.
 
----
+
 
 ## Typical workflow
 
@@ -199,3 +215,8 @@ Adjust these to match your comfort level and CI/CD setup.
    ./ralph.sh 20
    ```
 4. Review `progress.txt` for a running log of changes and next steps.
+
+
+## License
+
+MIT — see [LICENSE](LICENSE).
