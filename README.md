@@ -182,6 +182,35 @@ MODEL=claude-opus-4.5 ./ralph-once.sh
 ./ralph.sh 10
 ```
 
+### No parameters / minimal invocation
+
+`ralph.sh` requires exactly one positional argument: the number of iterations.
+
+- Minimal run (default prompt + default PRD + default tool policy):
+  ```bash
+  ./ralph.sh 10
+  ```
+- Show help:
+  ```bash
+  ./ralph.sh --help
+  ```
+
+### Parameters
+
+`ralph.sh` accepts these options (all optional) plus the required `<iterations>` positional arg:
+
+- `--prompt <file>`: Load prompt text from a file. If omitted, uses `prompts/default.txt`.
+- `--prd <file>` / `--prd=<file>`: Use a specific PRD JSON file. Default: `plans/prd.json`.
+- `--allow-profile <safe|dev|locked>`: Select a tool permission profile.
+- `--allow-tools <toolSpec>` (repeatable): Add an allowed tool.
+  - If you provide any `--allow-tools`, they become the *full* allowlist (they replace the profile/default allowed tools).
+- `--deny-tools <toolSpec>` (repeatable): Deny a tool.
+- `MODEL=<model>` (env var): Select the model (default: `gpt-5.2`). Example: `MODEL=claude-opus-4.5 ./ralph.sh 10`.
+
+Notes:
+- When you use `--prompt`, you must also pass `--allow-profile` or at least one `--allow-tools`.
+- The script always denies dangerous commands like `shell(rm)` and `shell(git push)`.
+
 ### Usage with a custom prompt
 
 When using `--prompt`, you must also specify either `--allow-profile` or one or more `--allow-tools`.
@@ -195,7 +224,7 @@ If you provide any `--allow-tools`, they become the full allowlist (they replace
 Use a prompt-specific PRD file:
 
 ```bash
-./ralph.sh --prompt prompts/my-prompt.txt --prd plans/prd-wordpress.json --allow-profile safe 10
+./ralph.sh --prompt prompts/my-prompt.txt --prd plans/prd-wordpress-plugin-agent.json --allow-profile safe 10
 ```
 
 Example: WordPress-oriented prompt (from `ralph-wp`), with explicit shell tools:
@@ -228,11 +257,17 @@ Add extra denied tools (repeatable):
 ```
 
 ### How it prompts Copilot
-The prompt includes:
-- `@<prd file>` (defaults to `@plans/prd.json`)
-- `@progress.txt`
+Copilot CLI versions observed during development can behave poorly when the prompt contains multiple `@file` attachments.
 
-…plus instructions to implement **one** feature, run checks, update files, and commit.
+To avoid that, `ralph.sh` builds a *single temporary context file* per iteration that contains:
+- the PRD JSON (defaults to `plans/prd.json`)
+- `progress.txt`
+
+Then it runs Copilot with:
+- `--add-dir "$PWD"` (so `@<file>` attachments are allowed)
+- a prompt that starts with `@<temp context file>` followed by the prompt text
+
+The prompt instructs Copilot to implement **one** feature, run checks, update files, and commit.
 
 
 
@@ -245,6 +280,36 @@ The prompt includes:
 ```bash
 ./ralph-once.sh
 ```
+
+### No parameters / minimal invocation
+
+With no parameters, `ralph-once.sh` uses:
+- prompt: `prompts/default.txt`
+- PRD: `plans/prd.json`
+- progress file: `progress.txt`
+- model: `gpt-5.2` (override via `MODEL=<model>`)
+
+Show help:
+
+```bash
+./ralph-once.sh --help
+```
+
+### Parameters
+
+`ralph-once.sh` accepts these options (all optional):
+
+- `--prompt <file>`: Load prompt text from a file. If omitted, uses `prompts/default.txt`.
+- `--prd <file>`: Use a specific PRD JSON file. Default: `plans/prd.json`.
+- `--allow-profile <safe|dev|locked>`: Select a tool permission profile.
+- `--allow-tools <toolSpec>` (repeatable): Add an allowed tool.
+  - If you provide any `--allow-tools`, they become the *full* allowlist (they replace the profile/default allowed tools).
+- `--deny-tools <toolSpec>` (repeatable): Deny a tool.
+- `MODEL=<model>` (env var): Select the model (default: `gpt-5.2`). Example: `MODEL=claude-opus-4.5 ./ralph-once.sh`.
+
+Notes:
+- When you use `--prompt`, you must also pass `--allow-profile` or at least one `--allow-tools`.
+- The script always denies dangerous commands like `shell(rm)` and `shell(git push)`.
 
 ### Usage with a custom prompt
 
@@ -277,9 +342,31 @@ Copilot CLI supports tool permission flags like:
 - `--allow-tool 'shell(git)'` / `--deny-tool 'shell(git push)'`
 - `--allow-all-tools` (broad auto-approval; use with care)
 
+### `--allow-profile` meanings
+
+The scripts support three built-in tool permission profiles:
+
+- `locked`: write-only.
+  - Allows: `write`
+  - Use this when you want Copilot to only edit files (no shell).
+
+- `safe`: “common dev loop” tools.
+  - Allows: `write`, `shell(pnpm)`, `shell(git)`
+  - Use this for most repos where you want installs/tests (`pnpm`) and normal git operations.
+
+- `dev`: broadest permissions.
+  - Enables: `--allow-all-tools`
+  - Still explicitly allows the common tools above.
+  - Use this only when you expect the agent to need lots of shell commands.
+
+Regardless of profile, the scripts always deny a small set of dangerous tools (e.g. `shell(rm)` and `shell(git push)`).
+
+If you provide any `--allow-tools`, they become the full allowlist (they replace profile/default allowed tools).
+
 The scripts in this bundle:
-- enable non-interactive execution with `--allow-all-tools`
 - explicitly deny dangerous commands like `rm` and `git push`
+- aim to run non-interactively by passing Copilot CLI tool permissions up-front
+  - `ralph.sh` uses `--allow-all-tools` and may additionally pass `--available-tools ...` to restrict what’s actually usable
 
 When using a custom prompt via `--prompt`, the scripts default to a conservative policy:
 - they require either `--allow-profile` or at least one `--allow-tools`
