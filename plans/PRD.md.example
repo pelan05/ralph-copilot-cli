@@ -1,0 +1,11 @@
+# My Project PRD
+
+A sample PRD in Markdown format for Ralph.
+
+## Tasks
+
+- [ ] Create user authentication system with login/logout
+- [ ] Add dashboard page with summary statistics
+- [ ] Build API endpoints for user management
+- [ ] Implement search functionality across all entities
+- [ ] Add export to CSV feature for reports

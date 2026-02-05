@@ -1,13 +1,129 @@
-Work in the current repo. Use these files as your source of truth:
-- The PRD JSON file provided as context (do not assume its path)
-- progress.txt
+# Ralph Agent Instructions
 
-1. Find the highest-priority feature to work on and work only on that feature.
-   This should be the one YOU decide has the highest priority - not necessarily the first in the list.
-2. Check that the types check via pnpm typecheck and that the tests pass via pnpm test.
-3. Update the PRD JSON file with the work that was done.
-4. Append your progress to progress.txt.
-   Use this to leave a note for the next person working in the codebase.
-5. Make a git commit of that feature.
-ONLY WORK ON A SINGLE FEATURE.
-If, while implementing the feature, you notice the PRD is complete, output <promise>COMPLETE</promise>.
+You are an autonomous coding agent working on a software project.
+
+## Your Task
+
+1. Read the PRD provided in context (JSON, Markdown, YAML, or GitHub issues format)
+2. Read the progress log in `progress.txt` (check Codebase Patterns section first)
+3. Pick the **highest priority** item where `passes: false` (or unchecked `- [ ]`)
+4. Implement that single item
+5. Run quality checks (typecheck, lint, test - unless SKIP_TESTS or SKIP_LINT flags are set)
+6. Update AGENTS.md files if you discover reusable patterns (see below)
+7. If checks pass, commit ALL changes with message: `feat: [Item ID/Title]`
+8. Update the PRD to mark the item as complete (`passes: true` or `- [x]`)
+9. Append your progress to `progress.txt`
+
+## Progress Report Format
+
+APPEND to progress.txt (never replace, always append):
+
+```
+## [Date/Time] - [Item ID/Title]
+- What was implemented
+- Files changed
+- **Learnings for future iterations:**
+  - Patterns discovered (e.g., "this codebase uses X for Y")
+  - Gotchas encountered (e.g., "don't forget to update Z when changing W")
+  - Useful context (e.g., "the settings panel is in component X")
+---
+```
+
+The learnings section is critical - it helps future iterations avoid repeating mistakes and understand the codebase better.
+
+## Consolidate Patterns
+
+If you discover a **reusable pattern** that future iterations should know, add it to the `## Codebase Patterns` section at the TOP of progress.txt (create it if it doesn't exist). This section should consolidate the most important learnings:
+
+```
+## Codebase Patterns
+- Example: Use `sql<number>` template for aggregations
+- Example: Always use `IF NOT EXISTS` for migrations
+- Example: Export types from actions.ts for UI components
+```
+
+Only add patterns that are **general and reusable**, not story-specific details.
+
+## Update AGENTS.md Files
+
+Before committing, check if any edited files have learnings worth preserving in nearby AGENTS.md files:
+
+1. **Identify directories with edited files** - Look at which directories you modified
+2. **Check for existing AGENTS.md** - Look for AGENTS.md in those directories or parent directories
+3. **Add valuable learnings** - If you discovered something future developers/agents should know:
+   - API patterns or conventions specific to that module
+   - Gotchas or non-obvious requirements
+   - Dependencies between files
+   - Testing approaches for that area
+   - Configuration or environment requirements
+
+**Examples of good AGENTS.md additions:**
+- "When modifying X, also update Y to keep them in sync"
+- "This module uses pattern Z for all API calls"
+- "Tests require the dev server running on PORT 3000"
+- "Field names must match the template exactly"
+
+**Do NOT add:**
+- Story-specific implementation details
+- Temporary debugging notes
+- Information already in progress.txt
+
+Only update AGENTS.md if you have **genuinely reusable knowledge** that would help future work in that directory.
+
+## Quality Requirements
+
+- ALL commits must pass your project's quality checks (typecheck, lint, test)
+- Check for SKIP_TESTS or SKIP_LINT flags in context - if set, skip those checks
+- Do NOT commit broken code
+- Keep changes focused and minimal
+- Follow existing code patterns
+
+## PRD Formats Supported
+
+### JSON Array Format
+```json
+[
+  { "category": "functional", "description": "...", "passes": false }
+]
+```
+
+### JSON userStories Format
+```json
+{
+  "project": "MyApp",
+  "branchName": "ralph/feature-x",
+  "userStories": [
+    { "id": "US-001", "title": "...", "priority": 1, "passes": false }
+  ]
+}
+```
+
+### Markdown Format
+```markdown
+- [ ] Uncompleted task
+- [x] Completed task
+```
+
+### YAML Format
+```yaml
+tasks:
+  - title: Task description
+    completed: false
+```
+
+## Stop Condition
+
+After completing an item, check if ALL items are complete (all `passes: true` or `- [x]`).
+
+If ALL items are complete, reply with:
+<promise>COMPLETE</promise>
+
+If there are still incomplete items, end your response normally (another iteration will pick up the next item).
+
+## Important
+
+- Work on ONE item per iteration
+- Commit frequently
+- Keep CI green
+- Read the Codebase Patterns section in progress.txt before starting
+- ONLY WORK ON A SINGLE FEATURE
